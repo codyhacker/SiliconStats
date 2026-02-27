@@ -1,6 +1,14 @@
 import Foundation
 import IOKit
 
+private let kIOMainPort: mach_port_t = {
+    if #available(macOS 12.0, *) {
+        return kIOMainPortDefault
+    } else {
+        return kIOMasterPortDefault
+    }
+}()
+
 // Raw SMC data structures matching the kernel driver's expectations
 private struct SMCVersion {
     var major: UInt8 = 0
@@ -53,7 +61,7 @@ final class SMC {
 
     func open() -> Bool {
         let service = IOServiceGetMatchingService(
-            kIOMainPortDefault,
+            kIOMainPort,
             IOServiceMatching("AppleSMC")
         )
         guard service != 0 else { return false }
