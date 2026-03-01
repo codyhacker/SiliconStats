@@ -79,26 +79,36 @@ final class SMC {
         }
     }
 
-    private static let candidateKeys = [
-        "TC0D", "TC0E", "TC0F", "TC0P",           // Intel: die, die2, die3, proximity
-        "Tp09", "Tp01", "Tp05", "Tp0D", "Tp0H",   // Apple Silicon: P-core clusters
-        "Tp0j", "Tp0r", "Tp0n", "Tp0b", "Tp0f",   // Apple Silicon: E-core clusters
+    private static let cpuCandidateKeys = [
+        "TC0D", "TC0E", "TC0F", "TC0P",
+        "Tp09", "Tp01", "Tp05", "Tp0D", "Tp0H",
+        "Tp0j", "Tp0r", "Tp0n", "Tp0b", "Tp0f",
     ]
 
-    private var resolvedKey: String?
+    private static let gpuCandidateKeys = [
+        "Tg0D", "Tg0P", "TG0D",
+    ]
 
-    /// Read CPU temperature in Celsius.
-    /// On first call, probes all candidate keys and locks onto the best one (highest plausible reading,
-    /// which is most likely the CPU die rather than an ambient/proximity sensor).
+    private var resolvedCPUKey: String?
+    private var resolvedGPUKey: String?
+
     func readCPUTemperature() -> Double? {
-        if let key = resolvedKey {
+        return readBestSensor(candidates: Self.cpuCandidateKeys, resolved: &resolvedCPUKey)
+    }
+
+    func readGPUTemperature() -> Double? {
+        return readBestSensor(candidates: Self.gpuCandidateKeys, resolved: &resolvedGPUKey)
+    }
+
+    private func readBestSensor(candidates: [String], resolved: inout String?) -> Double? {
+        if let key = resolved {
             return readTemperature(key: key)
         }
 
         var bestKey: String?
         var bestTemp: Double = 0
 
-        for key in Self.candidateKeys {
+        for key in candidates {
             if let temp = readTemperature(key: key), temp > 20, temp < 110 {
                 if temp > bestTemp {
                     bestTemp = temp
@@ -107,7 +117,7 @@ final class SMC {
             }
         }
 
-        resolvedKey = bestKey
+        resolved = bestKey
         return bestKey != nil ? bestTemp : nil
     }
 

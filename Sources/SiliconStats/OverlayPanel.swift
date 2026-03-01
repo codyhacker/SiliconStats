@@ -73,38 +73,8 @@ final class OverlayPanel: NSPanel {
         center()
     }
 
-    private func symbolImage(_ name: String) -> NSImage? {
-        let config = NSImage.SymbolConfiguration(pointSize: 11, weight: .medium)
-        return NSImage(systemSymbolName: name, accessibilityDescription: nil)?
-            .withSymbolConfiguration(config)
-    }
-
-    func update(temp: Double?, usage: Double) {
-        let usageStr = String(format: "%.0f%%", usage)
-        let text = NSMutableAttributedString()
-        let attrs: [NSAttributedString.Key: Any] = [
-            .font: NSFont.monospacedSystemFont(ofSize: 12, weight: .medium),
-            .foregroundColor: NSColor.labelColor,
-        ]
-
-        if let temp {
-            let tempStr = String(format: "%.0f°", temp)
-            if let img = symbolImage("thermometer.and.ellipsis") {
-                let attachment = NSTextAttachment()
-                attachment.image = img
-                text.append(NSAttributedString(attachment: attachment))
-            }
-            text.append(NSAttributedString(string: " \(tempStr)  ", attributes: attrs))
-        }
-
-        if let img = symbolImage("cpu") {
-            let attachment = NSTextAttachment()
-            attachment.image = img
-            text.append(NSAttributedString(attachment: attachment))
-        }
-        text.append(NSAttributedString(string: " \(usageStr)", attributes: attrs))
-
-        label.attributedStringValue = text
+    func update(content: NSAttributedString) {
+        label.attributedStringValue = content
 
         let fitted = label.intrinsicContentSize
         let newWidth = fitted.width + 52
